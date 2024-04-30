@@ -1,15 +1,15 @@
 sdq_common_config_dict = {
-    "db" : "sdq_prod",
-    "host" : "prod-sdq.cbvts3gwaard.us-east-1.rds.amazonaws.com",
-    "user_name" : "readonly",
-    "password" : "ReaD@Onel23$"
+    "db" : "",
+    "host" : "",
+    "user_name" : "",
+    "password" : ""
 }
 
 db_config_dict = {
-    "db" : "SDQA8DB",
-    "host" : "prod-sdq.cbvts3gwaard.us-east-1.rds.amazonaws.com",
-    "user_name" : "readonly",
-    "password" : "ReaD@Onel23$"
+    "db" : "",
+    "host" : "",
+    "user_name" : "",
+    "password" : ""
 }
 
 account_id = 8
