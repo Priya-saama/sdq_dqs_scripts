@@ -44,6 +44,7 @@ class copy_dqs:
             
         map_form = {}
         map_visit = {}
+        item_dataset_vars = {}
 
         if prod_version is None:
             prod_version_val = 'null'
@@ -172,6 +173,8 @@ class copy_dqs:
             # study_name = self.get_study_name(account_id, study_id)
             study_name = record['study_name'].values[0]
             print('study_name', study_name)
+            if not item_dataset_vars.get(study_name):
+                item_dataset_vars[study_name] = {}
 
             if not map_form.get(study_name):
                 map_form[study_name] = self.get_missing_map_data(account_id, study_id, 'map_form', 'form_nm')
@@ -219,14 +222,25 @@ class copy_dqs:
                             column not in primary_dataset_variables and column not in stg_pred_base_cols]
 
             dataset_sql = f"select distinct js.key from account_{account_id}_study_{study_id}.stg_pred sp, json_each_text(item_dataset::json) as js where domain = '{prim_domain_name}' and iudflag != 'D'"
+            key_name = prim_domain_name
             if len(primary_dataset['form_name']) > 0:
-                if 'adverse events' in str(primary_dataset['form_name'][0]).lower():
+                prim_formname = primary_dataset['form_name'][0]
+                if 'adverse events' in str(prim_formname).lower():
+                    prim_formname = 'Adverse Events'
                     dataset_sql = dataset_sql + f" and formname like '%Adverse Events%'"
                 else:
-                    dataset_sql = dataset_sql + f" and formname = '{primary_dataset['form_name'][0]}'"
+                    dataset_sql = dataset_sql + f" and formname = '{prim_formname}'"
 
-            prim_db_keys = pd.read_sql_query(dataset_sql, self.sdq_dbconn)
-            prim_db_keys = prim_db_keys['key'].tolist()
+                key_name = key_name + '_' + prim_formname
+
+            print('key_name', key_name)
+            if not item_dataset_vars.get(key_name):
+                prim_db_keys = pd.read_sql_query(dataset_sql, self.sdq_dbconn)
+                prim_db_keys = prim_db_keys['key'].tolist()
+                item_dataset_vars[study_name][key_name] = prim_db_keys
+                print('item_dataset_vars', item_dataset_vars)
+            else:
+                prim_db_keys = item_dataset_vars[study_name][key_name]
 
             prim_diff_vars_db = [column for column in primary_dataset['columns'] if
                                 column not in prim_db_keys and column not in stg_pred_base_cols] if len(prim_db_keys) else []
@@ -301,14 +315,23 @@ class copy_dqs:
                         rl_diff_vars[rl_domain_name]['preconf_vars'] = diff_vars
 
                     dataset_sql = f"select distinct js.key from account_{account_id}_study_{study_id}.stg_pred sp, json_each_text(item_dataset::json) as js where domain = '{rl_domain_name}' and iudflag != 'D'"
+                    key_name = rl_domain_name
                     if len(rl_df['form_name']) > 0:
-                        if 'adverse events' in str(rl_df['form_name'][0]).lower():
+                        rl_formname = rl_df['form_name'][0]
+                        if 'adverse events' in str(rl_formname).lower():
+                            rl_formname = 'Adverse Events'
                             dataset_sql = dataset_sql + f" and formname like '%Adverse Events%'"
                         else:
-                            dataset_sql = dataset_sql + f" and formname = '{rl_df['form_name'][0]}'"
+                            dataset_sql = dataset_sql + f" and formname = '{rl_formname}'"
+
+                        key_name = key_name + '_' + rl_formname
                     
-                    rl_db_keys = pd.read_sql_query(dataset_sql, self.sdq_dbconn)
-                    rl_db_keys = rl_db_keys['key'].tolist()
+                    if not item_dataset_vars[study_name].get(key_name):
+                        rl_db_keys = pd.read_sql_query(dataset_sql, self.sdq_dbconn)
+                        rl_db_keys = rl_db_keys['key'].tolist()
+                        item_dataset_vars[study_name][key_name] = rl_db_keys
+                    else:
+                        rl_db_keys = item_dataset_vars[study_name][key_name]
 
                     rl_diff_vars_db = [column for column in rl_df['columns'] if
                                     column not in rl_db_keys and column not in stg_pred_base_cols] if len(rl_db_keys) else []
