@@ -168,7 +168,7 @@ class copy_dqs:
             print("DQ name", record['name'].values[0])
             dq_name = record['name'].values[0]
             origin = record['origin'].values[0] if 'origin' in record.columns.tolist() else ''
-
+            inherit_type = record['inherit_type'].values[0] # if 'inherit_type' in record.columns.tolist() else ''
             study_id = record['study_id'].values[0]
 
             # study_name = self.get_study_name(account_id, study_id)
@@ -189,11 +189,11 @@ class copy_dqs:
             if not map_visit.get(study_name):
                 map_visit[study_name] = self.get_missing_map_data(account_id, study_id, 'map_visit', 'visit_nm')
 
+            visit_def_list = ['All', 'all']
             visit_values = primary_dataset['visit_name']
-            
             prim_visit_list = map_visit[study_name]
             prim_visit_list = [x.lower() for x in prim_visit_list]
-            prim_visit_missing = [x for x in visit_values if x.lower().strip() not in prim_visit_list]
+            prim_visit_missing = [x for x in visit_values if x.lower().strip() not in prim_visit_list and x.lower().strip() not in visit_def_list]
             prim_visit_missing = ', '.join(prim_visit_missing)
 
             stg_pred_base_cols = ['formname', 'itemset_ix', 'subjid', 'siteno', 'visit_nm', 'visit_ix', 'visit_id', 'form_id',
@@ -248,7 +248,7 @@ class copy_dqs:
             prim_diff_vars = ', '.join(prim_diff_vars)
             prim_diff_vars_db = ', '.join(prim_diff_vars_db)
 
-            data_dict = {'Study Name': study_name, 'DQ Name': dq_name, 'Origin': origin, 'Description': dq_description, 'Primary Domain': prim_domain_name,
+            data_dict = {'Study Name': study_name, 'DQ Name': dq_name, 'Origin': origin, 'Inherit Type': inherit_type, 'Description': dq_description, 'Primary Domain': prim_domain_name,
                                 'Primary Forms': prim_form_missing, 'Primary Visits': prim_visit_missing,
                                 'Primary Preconf Variables': prim_diff_vars,'Primary Dataset Variables': prim_diff_vars_db,
                                 'Query Target': missing_qt}
@@ -283,7 +283,7 @@ class copy_dqs:
                     rl_visit_values = rl_df['visit_name']
                     rl_visit_list = map_visit[study_name]
                     rl_visit_list = [x.lower() for x in rl_visit_list]
-                    rl_visit_missing = [x for x in rl_visit_values if x.lower().strip() not in rl_visit_list]
+                    rl_visit_missing = [x for x in rl_visit_values if x.lower().strip() not in rl_visit_list and x.lower().strip() not in visit_def_list]
                     rl_visit_missing = ', '.join(rl_visit_missing)
                    
                     if rl_form_missing or rl_visit_missing:
@@ -374,7 +374,7 @@ class copy_dqs:
         if len(final_df) > 0:
             final_df = final_df.drop_duplicates()
             final_df.sort_values(["Study Name","DQ Name"], inplace=True)
-            final_df1 = final_df.set_index(["Study Name","DQ Name", "Origin", "Description", "Primary Domain", "Primary Forms", "Primary Visits", "Primary Preconf Variables", "Primary Dataset Variables", "Query Target", "Description Missing Variables"])
+            final_df1 = final_df.set_index(["Study Name","DQ Name", "Origin", "Inherit Type", "Description", "Primary Domain", "Primary Forms", "Primary Visits", "Primary Preconf Variables", "Primary Dataset Variables", "Query Target", "Description Missing Variables"])
             final_df1.style.set_properties(**{'border': 'black', 'color': 'black'})
 
             final_df1.to_excel(f'output/{output_file_name}.xlsx', sheet_name="Data missing sheet", merge_cells=True)
