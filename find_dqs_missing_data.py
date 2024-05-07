@@ -233,12 +233,10 @@ class copy_dqs:
 
                 key_name = key_name + '_' + prim_formname
 
-            print('key_name', key_name)
             if not item_dataset_vars.get(key_name):
                 prim_db_keys = pd.read_sql_query(dataset_sql, self.sdq_dbconn)
                 prim_db_keys = prim_db_keys['key'].tolist()
                 item_dataset_vars[study_name][key_name] = prim_db_keys
-                print('item_dataset_vars', item_dataset_vars)
             else:
                 prim_db_keys = item_dataset_vars[study_name][key_name]
 
@@ -375,7 +373,6 @@ class copy_dqs:
                     data_df = data_df.append(df2, ignore_index = True)
 
             if len(data_df) > 0:
-                print('data_df', data_df.to_dict(orient='records'))
                 final_df = final_df.append(data_df, ignore_index = True)
             
         if len(final_df) > 0:
