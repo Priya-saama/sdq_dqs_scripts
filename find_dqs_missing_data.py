@@ -75,8 +75,6 @@ class copy_dqs:
             data.fillna('', inplace=True)
             data[new_line_cols] = data[new_line_cols].replace('\n', '', regex=True)
 
-            # data = data[data['name'].isin(['DQ_QSAE_001', 'DQ_AEDD_001', 'DQ_AEDD_007', 'DQ_AEDS_001', 'DQ_AEDS_002_V1', 'DQ_AEDS_003_V1', 'DQ_AEDS_011_V1'])] #
-
             # get study id for MDD DQs
             study_id = self.get_study_id(account_id, mdd_config['study_name'])
             if not study_id:
@@ -185,7 +183,6 @@ class copy_dqs:
             prim_form_missing = [x for x in form_values if x.lower().strip() not in prim_form_list and x.lower().strip() not in form_def_list]
             prim_form_missing = ', '.join(prim_form_missing)
     
-            # prim_visit_missing = self.get_missing_map_data(account_id, study_id, 'map_visit', 'visit_nm', primary_dataset['visit_name'])
             if not map_visit.get(study_name):
                 map_visit[study_name] = self.get_missing_map_data(account_id, study_id, 'map_visit', 'visit_nm')
 
@@ -266,13 +263,6 @@ class copy_dqs:
                     rl_domain_name = rl_df['domain']
                     if not rl_domain_name:
                         continue
-                    # rl_domain_id = self.get_domain_id(account_id, study_id, rl_domain_name)
-                    # if not rl_domain_id:
-                    #     continue
-
-                    
-                    # rl_form_missing = self.get_missing_map_data(account_id, study_id, 'map_form', 'form_nm', rl_df['form_name'])
-                    # rl_visit_missing = self.get_missing_map_data(account_id, study_id, 'map_visit', 'visit_nm', rl_df['visit_name'])
 
                     rl_form_values = rl_df['form_name']
                     rl_form_list = map_form[study_name]
@@ -293,7 +283,6 @@ class copy_dqs:
 
                     rl_dataset_df = preconf_df[(preconf_df['study_id'] == study_id) & (preconf_df['domain_name'] == rl_domain_name)]
                     rl_dataset_variables = rl_dataset_df['variable_name'].tolist()
-                    # rl_dataset_variables = self.get_domain_variables(rl_domain_id)
 
                     for x in dynamic_panel:
                         if x['domain'] == rl_domain_name:
@@ -366,11 +355,6 @@ class copy_dqs:
                 print('data_df', data_df.to_dict(orient='records'))
                 final_df = final_df.append(data_df, ignore_index = True)
             
-            # if ind > 60:
-            #     break
-        # final_df.dropna(subset=["Primary Preconf Variables", "Primary Dataset Variables", "Query Target", "Relational Preconf Variables", "Relational Dataset Variables",\
-        #                         "Primary Forms", "Primary Visits", "Relational Forms", "Relational Visits"], inplace=True)
-        
         if len(final_df) > 0:
             final_df = final_df.drop_duplicates()
             final_df.sort_values(["Study Name","DQ Name"], inplace=True)
