@@ -57,8 +57,8 @@ class copy_dqs:
             data = pd.read_sql_query(
                 f"""select * from (
                 select row_number() over (partition by name, sec.study_id order by ec.version desc) as r,
-                FIRST_VALUE(inherit_type) over (partition by sec.study_id, name order by ec.version) f_val, ec.id, ec.account_id, ec.name, ec.description, ec.dataset, ec.version, ec.origin, ec.query_target, ec.dynamic_panel_config, ec.inherit_type, sec.study_id, sec.prod_version, s.study_id as study_name
-                from sdq_common.edit_check ec inner join sdq_common.study_edit_check sec on sec.ec_id = ec.id inner join sdq_common.study s on s.id = sec.study_id where ec.account_id = {account_id} and ec.is_deleted is false and sec.prod_version is {prod_version_val}) as b where r=1 and f_val = 'copy'""",
+                FIRST_VALUE(inherit_type) over (partition by sec.study_id, name order by ec.version) f_val, ec.id, ec.account_id, ec.name, ec.description, ec.dataset, ec.version, ec.origin, ec.query_target, ec.dynamic_panel_config, ec.inherit_type, sec.study_id, sec.prod_version, sec.status, s.study_id as study_name
+                from sdq_common.edit_check ec inner join sdq_common.study_edit_check sec on sec.ec_id = ec.id inner join sdq_common.study s on s.id = sec.study_id where ec.account_id = {account_id} and ec.is_deleted is false and sec.status != 'INACTIVE' and sec.prod_version is {prod_version_val}) as b where r=1 and f_val = 'copy'""",
                 self.sdq_common_conn)
 
             print('before len', len(data))
